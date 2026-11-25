@@ -6,63 +6,86 @@
 <title>بطاقة الطالب</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-body{margin:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 30%,#1c2433,#0b0e14);font-family:Tahoma,sans-serif;overflow:hidden}
-.scene{width:94%;max-width:560px;aspect-ratio:1.586;perspective:1100px}
-.sway{width:100%;height:100%;transform-style:preserve-3d;animation:sway 6s ease-in-out infinite}
-@keyframes sway{0%,100%{transform:rotateY(-9deg) rotateX(4deg)}50%{transform:rotateY(9deg) rotateX(-3deg)}}
-.flip{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.4,.2,.2,1);cursor:pointer}
-.flip.on{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;border-radius:14px;box-sizing:border-box;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 18px 40px #000a;overflow:hidden}
-.front{direction:ltr;padding:10px 12px 22px;color:#111;display:grid;grid-template-columns:24% 1fr 27%;gap:8px;
-background:repeating-radial-gradient(circle at 58% 60%,rgba(214,90,110,.35) 0 1px,transparent 1px 5px),linear-gradient(120deg,#fbeff1 0%,#f6d9de 35%,#e6f1dc 70%,#f4f9ee 100%)}
-.back{background:linear-gradient(135deg,#f4f6f9,#dde3ea);transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#223}
-.face::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,#fff8,transparent);transform:skewX(-20deg);animation:shine 5s ease-in-out infinite;pointer-events:none}
-@keyframes shine{0%,60%{left:-60%}100%{left:130%}}
-.qrcol{display:flex;align-items:center;justify-content:center}
-#qr{background:#fff;padding:5px;border-radius:6px;width:100%;aspect-ratio:1;box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 30%,#1c2433,#0b0e14);font-family:Tahoma,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+.scene{position:relative;width:92%;max-width:560px;aspect-ratio:1.75;perspective:900px;touch-action:none;cursor:grab}
+.shadow{position:absolute;left:10%;right:10%;bottom:-9%;height:10%;background:radial-gradient(ellipse at center,#000c 0,transparent 70%);filter:blur(8px)}
+.card3d{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.layer{position:absolute;inset:0;border-radius:14px;background:#b9bfc9;transform:translateZ(var(--z))}
+.face{position:absolute;inset:0;border-radius:14px;box-sizing:border-box;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-style:preserve-3d}
+.face *{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.front{transform:translateZ(5px);direction:ltr;padding:10px 14px 8px;color:#111;display:flex;flex-direction:column;
+background:radial-gradient(#00000014 1px,transparent 1.3px) 0 0/7px 7px,linear-gradient(135deg,#fff,#eef1f5)}
+.back{transform:rotateY(180deg) translateZ(5px);background:linear-gradient(135deg,#f6f7f9,#dfe4ea);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#223}
+.sheen{position:absolute;inset:0;border-radius:14px;overflow:hidden;pointer-events:none;transform:translateZ(1px)}
+.sheen i{position:absolute;top:0;bottom:0;width:38%;left:calc(var(--sx,50)*1%);background:linear-gradient(100deg,transparent,#fffa,transparent);transform:skewX(-20deg)}
+.hd{direction:rtl;text-align:right;font-size:12px;font-weight:bold;color:#1d6b3a;transform:translateZ(6px)}
+.title{direction:rtl;text-align:center;font-size:20px;font-weight:bold;margin:0 0 4px;transform:translateZ(10px)}
+.body{flex:1;display:grid;grid-template-columns:22% 1fr 27%;gap:8px;align-items:center;transform-style:preserve-3d}
+#qr{background:#fff;padding:4px;border-radius:6px;width:100%;aspect-ratio:1;box-sizing:border-box;transform:translateZ(8px);box-shadow:0 3px 8px #0003}
 #qr img,#qr canvas{width:100%!important;height:100%!important}
-.mid{display:flex;flex-direction:column;justify-content:center;direction:rtl;text-align:center}
-.uni{font-size:11px;font-weight:bold}
-.title{font-size:14px;font-weight:bold;color:#c0394f;margin:2px 0 4px}
-.f{margin:1px 0}
-.f small{display:block;font-size:7px;color:#666;text-align:right}
-.f .v{display:flex;justify-content:space-between;direction:ltr;font-size:10px;font-weight:bold}
+.f{margin:2px 0}
+.f small{display:block;font-size:7px;color:#666;text-align:right;direction:rtl}
+.f .v{display:flex;justify-content:space-between;font-size:10px;font-weight:bold}
 .f .v i{font-style:normal;direction:rtl}
-.pcol{display:flex;align-items:flex-start;justify-content:center}
-.pf{background:linear-gradient(#a8d58a,#6fae58);padding:5px;border-radius:14px;width:100%}
-.pf img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#fff}
-.num{position:absolute;left:12px;bottom:9px;font-size:10px;letter-spacing:.5px}
-.wave{position:absolute;bottom:0;left:0;right:0;height:5px;background:repeating-linear-gradient(90deg,#2f8f4e 0 6px,#a8d58a 6px 12px)}
-.hint{color:#8a93a6;font-size:12px;margin-top:22px}
+.info{transform:translateZ(4px)}
+.pf{transform:translateZ(18px)}
+.pf img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border:2px solid #222;border-radius:4px;background:#fff;box-shadow:0 6px 14px #0006}
+.wave{height:6px;margin:4px 0 3px;background:repeating-linear-gradient(90deg,#2f8f4e 0 5px,#b9d9c3 5px 10px);border-radius:3px;transform:translateZ(3px)}
+.ft{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:bold;transform:translateZ(4px)}
+.ft .y{direction:rtl}
+.hint{color:#8a93a6;font-size:12px;margin-top:30px}
 </style>
 </head>
 <body>
-<div class="scene"><div class="sway"><div class="flip" id="card">
-  <div class="face front">
-    <div class="qrcol"><div id="qr"></div></div>
-    <div class="mid">
-      <div class="uni">جامعة قسنطينة 1</div>
+<div class="scene" id="scene">
+  <div class="shadow" id="shadow"></div>
+  <div class="card3d" id="card">
+    <div class="layer" style="--z:-4px"></div>
+    <div class="layer" style="--z:-2px"></div>
+    <div class="layer" style="--z:0px"></div>
+    <div class="layer" style="--z:2px"></div>
+    <div class="layer" style="--z:4px"></div>
+    <div class="face front">
+      <div class="hd">جامعة قسنطينة 1</div>
       <div class="title">بطاقة الطالب</div>
-      <div class="f"><small>اللقب</small><div class="v"><span>IDJET</span><i>إيجات</i></div></div>
-      <div class="f"><small>الاسم</small><div class="v"><span>OUAIL</span><i>وائل</i></div></div>
-      <div class="f"><small>تاريخ ومكان الميلاد</small><div class="v"><span>2004/07/31</span><i>قسنطينة</i></div></div>
-      <div class="f"><small>الميدان</small><div class="v"><span></span><i>آداب ولغات</i></div></div>
-      <div class="f"><small>الفرع</small><div class="v"><span></span><i>لغة فرنسية</i></div></div>
-      <div class="f"><small>المستوى</small><div class="v"><span></span><i>ليسانس سنة ثالثة</i></div></div>
+      <div class="body">
+        <div id="qr"></div>
+        <div class="info">
+          <div class="f"><small>اللقب</small><div class="v"><span>IDJET</span><i>إيجات</i></div></div>
+          <div class="f"><small>الاسم</small><div class="v"><span>OUAIL</span><i>وائل</i></div></div>
+          <div class="f"><small>تاريخ ومكان الميلاد</small><div class="v"><span>2004/07/31</span><i>قسنطينة</i></div></div>
+          <div class="f"><small>الميدان</small><div class="v"><span></span><i>آداب ولغات</i></div></div>
+          <div class="f"><small>الفرع</small><div class="v"><span></span><i>لغة فرنسية</i></div></div>
+        </div>
+        <div class="pf"><img src="IMG_6713.jpeg" alt="صورة"></div>
+      </div>
+      <div class="wave"></div>
+      <div class="ft"><span>222234300315</span><span class="y">السنة الجامعية 2026 / 2027</span></div>
+      <div class="sheen"><i></i></div>
     </div>
-    <div class="pcol"><div class="pf"><img src="IMG_6713.jpeg" alt="صورة"></div></div>
-    <div class="num">222234300315</div>
-    <div class="wave"></div>
+    <div class="face back">
+      <div style="font-weight:bold">جامعة قسنطينة 1</div>
+      <div style="font-size:11px;margin-top:6px;opacity:.7">تصميم شخصي · غير رسمي</div>
+      <div class="sheen"><i></i></div>
+    </div>
   </div>
-  <div class="face back">
-    <div style="font-weight:bold">جامعة قسنطينة 1</div>
-    <div style="font-size:11px;margin-top:6px;opacity:.7">تصميم شخصي · غير رسمي</div>
-  </div>
-</div></div></div>
-<div class="hint">اضغط على البطاقة لقلبها</div>
+</div>
+<div class="hint">اسحب لتدويرها · اضغط لقلبها</div>
 <script>
-new QRCode(document.getElementById("qr"),{text:location.href,width:200,height:200});
-document.getElementById("card").addEventListener("click",function(){this.classList.toggle("on")});
-</script>
-</body>
-</html>
+new QRCode(document.getElementById("qr"),{text:location.origin+location.pathname,width:200,height:200});
+var scene=document.getElementById("scene"),card=document.getElementById("card"),shadow=document.getElementById("shadow");
+var rx=0,ry=0,trx=0,tryy=0,flip=0,tflip=0,drag=false,moved=false,sx0=0,sy0=0;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+scene.addEventListener("pointerdown",function(e){drag=true;moved=false;sx0=e.clientX;sy0=e.clientY;try{scene.setPointerCapture(e.pointerId)}catch(x){}});
+scene.addEventListener("pointermove",function(e){
+  if(!drag)return;
+  var dx=e.clientX-sx0,dy=e.clientY-sy0;
+  if(Math.hypot(dx,dy)>6)moved=true;
+  tryy=clamp(dx*.3,-40,40);trx=clamp(-dy*.3,-30,30);
+});
+function up(){if(!drag)return;drag=false;if(!moved)tflip=tflip?0:180}
+scene.addEventListener("pointerup",up);
+scene.addEventListener("pointercancel",function(){drag=false});
+function loop(t){
+  if(!drag){tryy=Math.sin(t/1800)*10;trx=Math.cos(t/2300)*4}
+  ry+=(tryy-ry)*.1
