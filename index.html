@@ -1,119 +1,886 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>بطاقة الطالب</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<style>
-body{margin:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 30%,#1c2433,#0b0e14);font-family:Tahoma,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
-.scene{position:relative;width:92%;max-width:560px;aspect-ratio:1.6;perspective:900px;touch-action:none;cursor:grab}
-.shadow{position:absolute;left:10%;right:10%;bottom:-9%;height:10%;background:radial-gradient(ellipse at center,#000c 0,transparent 70%);filter:blur(8px)}
-.card3d{position:absolute;inset:0;transform-style:preserve-3d}
-.layer{position:absolute;inset:0;border-radius:14px;background:#c9ccd3;transform:translateZ(var(--z))}
-.face{position:absolute;inset:0;border-radius:14px;box-sizing:border-box;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-style:preserve-3d;overflow:hidden}
-.face *{backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.front{transform:translateZ(5px);direction:ltr;padding:10px 14px 18px;color:#111;display:flex;flex-direction:column;
-background:repeating-radial-gradient(circle at 58% 60%,rgba(214,90,110,.30) 0 1px,transparent 1px 5px),linear-gradient(120deg,#fbeff1 0%,#f6d9de 35%,#e6f1dc 70%,#f4f9ee 100%)}
-.back{transform:rotateY(180deg) translateZ(5px);background:linear-gradient(135deg,#f6f7f9,#dfe4ea);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#223}
-.sheen{position:absolute;inset:0;pointer-events:none}
-.sheen i{position:absolute;top:0;bottom:0;width:38%;left:calc(var(--sx,50)*1%);background:linear-gradient(100deg,transparent,#fffa,transparent);transform:skewX(-20deg)}
-.hd{direction:rtl;text-align:right;font-size:12px;font-weight:bold;color:#1d6b3a;transform:translateZ(6px)}
-.title{direction:rtl;text-align:center;font-size:19px;font-weight:bold;color:#c0394f;margin:0 0 4px;transform:translateZ(10px)}
-.body{flex:1;display:grid;grid-template-columns:22% 1fr 27%;gap:8px;align-items:center;transform-style:preserve-3d}
-#qr{background:#fff;padding:4px;border-radius:6px;width:100%;aspect-ratio:1;box-sizing:border-box;transform:translateZ(8px);box-shadow:0 3px 8px #0003}
-#qr img,#qr canvas{width:100%!important;height:100%!important}
-.info{transform:translateZ(4px)}
-.f{margin:2px 0}
-.f small{display:block;font-size:7px;color:#666;text-align:right;direction:rtl}
-.f .v{display:flex;justify-content:space-between;font-size:10px;font-weight:bold}
-.f .v i{font-style:normal;direction:rtl}
-.pf{transform:translateZ(18px);background:linear-gradient(#a8d58a,#6fae58);padding:5px;border-radius:14px}
-.pf img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#fff;box-shadow:0 6px 14px #0006}
-.wave{position:absolute;left:0;right:0;bottom:0;height:6px;background:repeating-linear-gradient(90deg,#2f8f4e 0 6px,#a8d58a 6px 12px)}
-.ft{position:absolute;left:14px;right:14px;bottom:10px;display:flex;justify-content:space-between;font-size:9px;font-weight:bold}
-.ft .y{direction:rtl}
-.hint{color:#8a93a6;font-size:12px;margin-top:30px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>WebEtu - بوابة الطالب</title>
+  <!-- خط Cairo العربي العصري والواضح -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg-outer: #05070a;
+      --bg-app: #0b0e14;
+      --bg-nav: #161b26;
+      --bg-card-dark: #141923;
+      --accent-green: #00a859;
+      --accent-green-glow: rgba(0, 168, 89, 0.25);
+      --card-paper: #f7f8f5;
+      --text-ink: #1f2937;
+      --text-muted-ink: #4b5563;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+      background-color: var(--bg-outer);
+      color: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* إطار الهاتف المحمول */
+    .phone-viewport {
+      width: 100%;
+      max-width: 430px;
+      height: 100dvh;
+      background-color: var(--bg-app);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    /* شريط الحالة العلوي للهاتف */
+    .status-bar {
+      height: 36px;
+      padding: 8px 22px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      direction: ltr;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    /* حاوية الصفحات */
+    .views-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      overflow-y: auto;
+    }
+
+    .view-screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    /* شاشة البطاقة - مطابقة لتمركز البطاقة في الصورة */
+    #view-cards {
+      justify-content: center;
+      align-items: center;
+      padding: 14px 20px 18px;
+      overflow: hidden;
+    }
+
+    /* مشهد القلب ثلاثي الأبعاد للبطاقة */
+    .card-scene {
+      width: 100%;
+      max-width: 342px;
+      height: min(72dvh, 545px);
+      perspective: 1400px;
+      cursor: pointer;
+    }
+
+    .card-flipper {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+      border-radius: 20px;
+    }
+
+    .card-flipper.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      background-color: #f6f7f2;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+      color: #1f2937;
+    }
+
+    /* خلفية البطاقة الأمنية المموجة الدقيقة المطابقة لبطاقة Progres */
+    .security-pattern {
+      background-color: #f6f7f2;
+      background-image:
+        radial-gradient(circle at 20% 25%, rgba(22, 163, 74, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(37, 99, 235, 0.05) 0%, transparent 45%),
+        repeating-linear-gradient(
+          -45deg,
+          rgba(22, 163, 74, 0.025) 0px,
+          rgba(22, 163, 74, 0.025) 2px,
+          transparent 2px,
+          transparent 8px
+        );
+    }
+
+    /* الوجه الأمامي والخلفي */
+    .card-front {
+      z-index: 2;
+      transform: rotateY(0deg);
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* الحافة اليمنى للبطاقة (تحتوي على السنة الجامعية في الأعلى والرقم التسلسلي في الأسفل كما في الصورة تماماً) */
+    .right-edge-meta {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 4px;
+      width: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 26px 0;
+      z-index: 7;
+    }
+
+    /* النصوص العمودية المقروءة من الأعلى للأسفل (تدوير +90 درجة) كما في الصورة تماماً */
+    .vertical-progres-text {
+      writing-mode: vertical-rl;
+      font-weight: 800;
+      color: #2c353d;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+
+    /* الشريط الأمني الأخضر المتموج على اليمين (بجانب السنة الجامعية والرقم التسلسلي كما في الصورة) */
+    .wavy-strip-container {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 30px;
+      width: 16px;
+      pointer-events: none;
+      z-index: 6;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* المحتوى الرئيسي للبطاقة مُدار +90 درجة مع عقارب الساعة ليطابق وضع البطاقة في الصورة 100% */
+    .rotated-card-content {
+      position: absolute;
+      top: 50%;
+      left: calc(50% - 20px);
+      width: min(68dvh, 505px);
+      height: 265px;
+      transform: translate(-50%, -50%) rotate(90deg);
+      transform-origin: center center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 14px 8px 14px;
+      direction: rtl;
+    }
+
+    /* شريط التنقل السفلي المطابق للصورة */
+    .bottom-nav {
+      background-color: #1c2230;
+      margin: 0 14px 16px;
+      padding: 5px;
+      border-radius: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px;
+      border-radius: 13px;
+      border: none;
+      background: transparent;
+      color: #cbd5e1;
+      font-family: 'Cairo', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+
+    .nav-btn svg {
+      width: 22px;
+      height: 22px;
+      transition: transform 0.2s ease;
+    }
+
+    .nav-btn.active {
+      background-color: var(--accent-green);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--accent-green-glow);
+    }
+
+    .nav-btn.active svg {
+      transform: scale(1.06);
+    }
+
+    /* تلميح اللمس الخفيف */
+    @keyframes pulseHint {
+      0%, 100% { opacity: 0.45; }
+      50% { opacity: 0.95; }
+    }
+    .flip-hint {
+      animation: pulseHint 2.6s infinite ease-in-out;
+    }
+
+    /* شريط تمرير مخفي */
+    .view-screen::-webkit-scrollbar {
+      width: 4px;
+    }
+    .view-screen::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 99px;
+    }
+  </style>
 </head>
 <body>
-<div class="scene" id="scene">
-  <div class="shadow" id="shadow"></div>
-  <div class="card3d" id="card">
-    <div class="layer" style="--z:-4px"></div>
-    <div class="layer" style="--z:-2px"></div>
-    <div class="layer" style="--z:0px"></div>
-    <div class="layer" style="--z:2px"></div>
-    <div class="layer" style="--z:4px"></div>
-    <div class="face front">
-      <div class="hd" id="uni"></div>
-      <div class="title">بطاقة الطالب</div>
-      <div class="body">
-        <div id="qr"></div>
-        <div class="info" id="info"></div>
-        <div class="pf"><img id="photo" alt="صورة"></div>
+
+  <div class="phone-viewport" id="app-root">
+    <!-- شريط الحالة العلوي (iOS Style كما في الصورة) -->
+    <header class="status-bar">
+      <div id="clock-time">12:39</div>
+      <div class="flex items-center gap-1.5">
+        <!-- أيقونة الشبكة -->
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
+          <rect x="0.5" y="7" width="2.5" height="3.5" rx="0.8" fill="white"/>
+          <rect x="4.5" y="5" width="2.5" height="5.5" rx="0.8" fill="white"/>
+          <rect x="8.5" y="2.8" width="2.5" height="7.7" rx="0.8" fill="white"/>
+          <rect x="12.5" y="0.5" width="2.5" height="10" rx="0.8" fill="white" fill-opacity="0.35"/>
+        </svg>
+        <!-- أيقونة الواي فاي -->
+        <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
+          <path d="M7.5 8.8C8.1 8.8 8.6 9.3 8.6 9.9C8.6 10.5 8.1 11 7.5 11C6.9 11 6.4 10.5 6.4 9.9C6.4 9.3 6.9 8.8 7.5 8.8ZM7.5 5.4C9.2 5.4 10.7 6.1 11.8 7.2L10.5 8.5C9.7 7.7 8.7 7.2 7.5 7.2C6.3 7.2 5.3 7.7 4.5 8.5L3.2 7.2C4.3 6.1 5.8 5.4 7.5 5.4ZM7.5 2C10.1 2 12.5 3.1 14.2 4.8L12.9 6.1C11.5 4.7 9.6 3.8 7.5 3.8C5.4 3.8 3.5 4.7 2.1 6.1L0.8 4.8C2.5 3.1 4.9 2 7.5 2Z" fill="white"/>
+        </svg>
+        <!-- أيقونة البطارية -->
+        <div class="flex items-center">
+          <div class="bg-[#eab308] text-black text-[10px] font-extrabold px-1.5 py-[0.5px] rounded-[4px] leading-tight">
+            43
+          </div>
+          <div class="w-[2px] h-[5px] bg-white/50 rounded-r-[1px] ml-[1px]"></div>
+        </div>
       </div>
-      <div class="ft"><span id="num"></span><span class="y" id="year"></span></div>
-      <div class="wave"></div>
-      <div class="sheen"><i></i></div>
+    </header>
+
+    <!-- حاوية الشاشات -->
+    <main class="views-container">
+
+      <!-- 1. شاشة الرئيسية (Home) -->
+      <section id="view-home" class="view-screen px-4 pt-3 pb-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-xs text-gray-400">مرحباً بك في بوابة الطالب</p>
+            <h1 class="text-lg font-bold text-white" id="home-student-greeting">إيجات وائل</h1>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-[#00a859]/15 border border-[#00a859]/40 flex items-center justify-center text-[#00a859] font-bold text-sm">
+            WE
+          </div>
+        </div>
+
+        <!-- بطاقة الحالة البيداغوجية -->
+        <div class="bg-gradient-to-l from-[#00a859] to-[#047857] rounded-2xl p-4 mb-5 shadow-lg text-white relative overflow-hidden">
+          <div class="relative z-10">
+            <div class="flex items-center justify-between text-xs opacity-90 mb-1">
+              <span id="home-univ">جامعة قسنطينة 1</span>
+              <span class="bg-white/20 px-2 py-0.5 rounded-full font-semibold" id="home-year">2026/2027</span>
+            </div>
+            <h2 class="text-base font-extrabold mb-1" id="home-field">ميدان: لغة فرنسية</h2>
+            <p class="text-xs opacity-90" id="home-level">ليسانس سنة ثانية • مسجل بانتظام</p>
+          </div>
+          <div class="absolute -left-6 -bottom-6 w-28 h-28 rounded-full bg-white/10"></div>
+        </div>
+
+        <h3 class="text-xs font-bold text-gray-400 mb-3">الخدمات البيداغوجية والجامعية</h3>
+
+        <!-- شبكة خدمات WebEtu -->
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="showToast('الجدول الزمني: لا توجد حصص مبرمجة حالياً')" class="bg-[#141923] hover:bg-[#1b2230] border border-white/5 rounded-2xl p-3.5 text-right transition flex flex-col gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-white">الجدول الزمني</div>
+              <div class="text-[11px] text-gray-400">توقيت المحاضرات والأعمال</div>
+            </div>
+          </button>
+
+          <button onclick="showToast('كشف النقاط: السداسي الأول قيد المداولات')" class="bg-[#141923] hover:bg-[#1b2230] border border-white/5 rounded-2xl p-3.5 text-right transition flex flex-col gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-white">كشف النقاط</div>
+              <div class="text-[11px] text-gray-400">نقاط الامتحانات والمراقبة</div>
+            </div>
+          </button>
+
+          <button onclick="showToast('المجموعة والفوج: المجموعة 01 - الفوج 03')" class="bg-[#141923] hover:bg-[#1b2230] border border-white/5 rounded-2xl p-3.5 text-right transition flex flex-col gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-white">المجموعة والفوج</div>
+              <div class="text-[11px] text-gray-400">التوزيع البيداغوجي</div>
+            </div>
+          </button>
+
+          <button onclick="showToast('الديون: لا توجد أي ديون بيداغوجية')" class="bg-[#141923] hover:bg-[#1b2230] border border-white/5 rounded-2xl p-3.5 text-right transition flex flex-col gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-white">الديون</div>
+              <div class="text-[11px] text-gray-400">المواد المتأخرة والرصيد</div>
+            </div>
+          </button>
+
+          <button onclick="showToast('النقل الجامعي: الاشتراك مفعل للسنة الحالية')" class="bg-[#141923] hover:bg-[#1b2230] border border-white/5 rounded-2xl p-3.5 text-right transition flex flex-col gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h8m-8 5h8m-4 5v2m-6-2h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-white">النقل والإيواء</div>
+              <div class="text-[11px] text-gray-400">خدمات الديوان الوطني</div>
+            </div>
+          </button>
+
+          <button onclick="switchTab('cards')" class="bg-[#141923] hover:bg-[#1b2230] border border-[#00a859]/30 rounded-2xl p-3.5 text-right transition flex flex-col gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-[#00a859]/20 text-[#00a859] flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-[#00a859]">بطاقة الطالب</div>
+              <div class="text-[11px] text-gray-400">عرض البطاقة الرقمية</div>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. شاشة بطاقاتي (My Cards - الشاشة الافتراضية المطابقة للصورة والفيديو) -->
+      <section id="view-cards" class="view-screen active">
+        <div class="card-scene" id="card-scene" title="اضغط لقلب البطاقة">
+          <div class="card-flipper" id="card-flipper">
+
+            <!-- الوجه الأمامي لبطاقة الطالب -->
+      <!-- 2. شاشة بطاقاتي (My Cards - الشاشة الافتراضية المطابقة للصورة والفيديو تماماً) -->
+      <section id="view-cards" class="view-screen active">
+        <div class="card-scene" id="card-scene" title="اضغط لقلب البطاقة">
+          <div class="card-flipper" id="card-flipper">
+
+            <!-- الوجه الأمامي لبطاقة الطالب -->
+            <div class="card-face card-front security-pattern">
+              
+              <!-- الحافة اليمنى العمودية: السنة الجامعية في الأعلى + الرقم التسلسلي في الأسفل كما في الصورة -->
+              <div class="right-edge-meta">
+                <span class="vertical-progres-text text-[12px]" id="card-academic-year">السنة الجامعية 2026/2027</span>
+                <span class="vertical-progres-text text-[11.5px] font-mono" id="card-matricule">UN25012026222234300315</span>
+              </div>
+
+              <!-- الخطان الأخضران المتموجان الأمنيان بجانب الشريط الأيمن -->
+              <div class="wavy-strip-container">
+                <svg width="14" height="100%" viewBox="0 0 14 600" preserveAspectRatio="none">
+                  <path d="M3,0 Q7,6 3,12 T3,24 T3,36 T3,48 T3,60 T3,72 T3,84 T3,96 T3,108 T3,120 T3,132 T3,144 T3,156 T3,168 T3,180 T3,192 T3,204 T3,216 T3,228 T3,240 T3,252 T3,264 T3,276 T3,288 T3,300 T3,312 T3,324 T3,336 T3,348 T3,360 T3,372 T3,384 T3,396 T3,408 T3,420 T3,432 T3,444 T3,456 T3,468 T3,480 T3,492 T3,504 T3,516 T3,528 T3,540 T3,552 T3,564 T3,576 T3,588 T3,600"
+                        fill="none" stroke="#16a34a" stroke-width="1.35" stroke-opacity="0.78"/>
+                  <path d="M9.5,0 Q13.5,6 9.5,12 T9.5,24 T9.5,36 T9.5,48 T9.5,60 T9.5,72 T9.5,84 T9.5,96 T9.5,108 T9.5,120 T9.5,132 T9.5,144 T9.5,156 T9.5,168 T9.5,180 T9.5,192 T9.5,204 T9.5,216 T9.5,228 T9.5,240 T9.5,252 T9.5,264 T9.5,276 T9.5,288 T9.5,300 T9.5,312 T9.5,324 T9.5,336 T9.5,348 T9.5,360 T9.5,372 T9.5,384 T9.5,396 T9.5,408 T9.5,420 T9.5,432 T9.5,444 T9.5,456 T9.5,468 T9.5,480 T9.5,492 T9.5,504 T9.5,516 T9.5,528 T9.5,540 T9.5,552 T9.5,564 T9.5,576 T9.5,588 T9.5,600"
+                        fill="none" stroke="#4ade80" stroke-width="1.2" stroke-opacity="0.7"/>
+                </svg>
+              </div>
+
+              <!-- محتوى البطاقة المُدار +90 درجة ليطابق تخطيط الصورة تماماً -->
+              <div class="rotated-card-content">
+                <!-- الترويسة الرسمية + شعار الجامعة في اليسار -->
+                <div class="flex items-start justify-between w-full">
+                  <div class="w-11"></div>
+                  <div class="text-center leading-[1.2] flex-1">
+                    <div class="text-[10.5px] font-bold text-gray-800">الجمهورية الجزائرية الديمقراطية الشعبية</div>
+                    <div class="text-[10px] font-bold text-gray-700">وزارة التعليم العالي والبحث العلمي</div>
+                    <div class="text-[12px] font-extrabold text-[#15803d] mt-0.5" id="card-university">جامعة قسنطينة 1</div>
+                    <div class="text-[19px] font-extrabold text-gray-900 tracking-tight mt-0.5">بطاقة الطالب</div>
+                  </div>
+                  <!-- شعار جامعة قسنطينة 1 الدائري -->
+                  <div class="w-12 h-12 rounded-full border-[2.5px] border-[#1e3a8a] bg-white flex items-center justify-center shadow-xs shrink-0">
+                    <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
+                      <circle cx="20" cy="20" r="17" stroke="#15803d" stroke-width="1.6" stroke-dasharray="2.5 1.5"/>
+                      <rect x="12" y="13" width="16" height="14" rx="1.5" stroke="#1e3a8a" stroke-width="1.5" fill="#eff6ff"/>
+                      <path d="M15 27V16M18.3 27V16M21.7 27V16M25 27V16" stroke="#1e3a8a" stroke-width="1.4"/>
+                      <path d="M11 13.5L20 9.5L29 13.5" stroke="#15803d" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- الوسط: صورة الطالب على اليمين + البيانات الشخصية بجانبها -->
+                <div class="flex items-start gap-3.5 my-auto pt-1">
+                  <!-- إطار صورة الطالب -->
+                  <div class="w-[84px] h-[102px] rounded-xl overflow-hidden bg-gray-200 border border-gray-300/80 shadow-xs shrink-0">
+                    <img id="student-photo-img"
+                         src=""
+                         alt="صورة الطالب"
+                         class="w-full h-full object-cover" />
+                  </div>
+
+                  <!-- حقول البيانات مرتبة عمودياً كما في الصورة تماماً -->
+                  <div class="flex-1 flex flex-col justify-center gap-[3px] text-right leading-tight">
+                    <div>
+                      <div class="text-[9.5px] font-semibold text-gray-500">اللقب</div>
+                      <div class="text-[12.5px] font-extrabold text-gray-900" id="card-lastname">إيجات</div>
+                    </div>
+                    <div>
+                      <div class="text-[9.5px] font-semibold text-gray-500">الإسم</div>
+                      <div class="text-[12.5px] font-extrabold text-gray-900" id="card-firstname">وائل</div>
+                    </div>
+                    <div>
+                      <div class="text-[9px] font-semibold text-gray-500">تاريخ و مكان الميلاد</div>
+                      <div class="flex items-center gap-2 text-[11px] font-extrabold text-gray-900">
+                        <span dir="ltr" id="card-dob">2004-07-31</span>
+                        <span id="card-pob">قسنطينة</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[9.5px] font-semibold text-gray-500">الميدان</div>
+                      <div class="text-[12px] font-extrabold text-gray-900" id="card-field">لغة فرنسية</div>
+                    </div>
+                    <div>
+                      <div class="text-[9.5px] font-semibold text-gray-500">الفرع</div>
+                      <div class="text-[11.5px] font-extrabold text-gray-900" id="card-branch">لغة فرنسية</div>
+                    </div>
+                    <div class="mt-0.5">
+                      <span class="text-[11px] font-extrabold text-gray-900" id="card-level">ليسانس سنة ثانية</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- الأسفل: الاسم باللاتينية في المنتصف المائل لليمين + QR في أقصى اليسار -->
+                <div class="flex items-end justify-between w-full pt-0.5">
+                  <div class="w-[84px]"></div>
+                  <div class="text-left leading-tight flex-1 pr-2" dir="ltr">
+                    <div class="text-[11.5px] font-extrabold text-gray-900 tracking-wide uppercase" id="card-latin-last">IDJET</div>
+                    <div class="text-[11.5px] font-bold text-gray-800 capitalize mt-0.5" id="card-latin-first">Ouail</div>
+                  </div>
+
+                  <!-- QR Code -->
+                  <div class="bg-white p-1 rounded-md border border-gray-200/80">
+                    <canvas id="qr-canvas" width="54" height="54" class="block"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- الوجه الخلفي لبطاقة الطالب (يظهر عند اللمس والقلب كما في الفيديو) -->
+            <div class="card-face card-back security-pattern">
+              <!-- نفس الشريط الأمني المتموج على اليمين ليطابق الفيديو -->
+              <div class="wavy-strip-container">
+                <svg width="14" height="100%" viewBox="0 0 14 600" preserveAspectRatio="none">
+                  <path d="M3,0 Q7,6 3,12 T3,24 T3,36 T3,48 T3,60 T3,72 T3,84 T3,96 T3,108 T3,120 T3,132 T3,144 T3,156 T3,168 T3,180 T3,192 T3,204 T3,216 T3,228 T3,240 T3,252 T3,264 T3,276 T3,288 T3,300 T3,312 T3,324 T3,336 T3,348 T3,360 T3,372 T3,384 T3,396 T3,408 T3,420 T3,432 T3,444 T3,456 T3,468 T3,480 T3,492 T3,504 T3,516 T3,528 T3,540 T3,552 T3,564 T3,576 T3,588 T3,600"
+                        fill="none" stroke="#16a34a" stroke-width="1.35" stroke-opacity="0.78"/>
+                  <path d="M9.5,0 Q13.5,6 9.5,12 T9.5,24 T9.5,36 T9.5,48 T9.5,60 T9.5,72 T9.5,84 T9.5,96 T9.5,108 T9.5,120 T9.5,132 T9.5,144 T9.5,156 T9.5,168 T9.5,180 T9.5,192 T9.5,204 T9.5,216 T9.5,228 T9.5,240 T9.5,252 T9.5,264 T9.5,276 T9.5,288 T9.5,300 T9.5,312 T9.5,324 T9.5,336 T9.5,348 T9.5,360 T9.5,372 T9.5,384 T9.5,396 T9.5,408 T9.5,420 T9.5,432 T9.5,444 T9.5,456 T9.5,468 T9.5,480 T9.5,492 T9.5,504 T9.5,516 T9.5,528 T9.5,540 T9.5,552 T9.5,564 T9.5,576 T9.5,588 T9.5,600"
+                        fill="none" stroke="#4ade80" stroke-width="1.2" stroke-opacity="0.7"/>
+                </svg>
+              </div>
+
+              <!-- محتوى الظهر نظيف وبسيط كما يظهر في الفيديو عند قلب البطاقة -->
+              <div class="rotated-card-content items-center justify-center text-center px-8">
+                <p class="text-[11px] font-bold text-gray-500/80 tracking-wide">PROGRES • MESRS</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. شاشة حسابي (My Account + أداة التعديل السريع والصورة) -->
+      <section id="view-account" class="view-screen px-4 pt-3 pb-6">
+        <h1 class="text-lg font-bold text-white mb-4">حسابي</h1>
+
+        <!-- بطاقة تعريف الحساب -->
+        <div class="bg-[#141923] border border-white/5 rounded-2xl p-4 flex items-center gap-3.5 mb-4">
+          <img id="account-avatar" src="" alt="الصورة الشخصية" class="w-14 h-14 rounded-2xl object-cover border border-[#00a859]/50 bg-gray-800" />
+          <div class="flex-1 min-w-0">
+            <div class="text-base font-bold text-white truncate" id="acc-fullname">إيجات وائل</div>
+            <div class="text-xs text-[#00a859] font-semibold" id="acc-field">لغة فرنسية • ليسانس سنة ثانية</div>
+            <div class="text-[11px] text-gray-400 font-mono mt-0.5 truncate" id="acc-matricule">UN25012026222234300315</div>
+          </div>
+        </div>
+
+        <!-- زر رفع صورة الطالب -->
+        <div class="bg-[#141923] border border-white/5 rounded-2xl p-4 mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-bold text-white">صورة بطاقة الطالب</span>
+            <span class="text-[11px] text-gray-400">تظهر مباشرة في البطاقة</span>
+          </div>
+          <label for="photo-upload-input" class="w-full py-2.5 px-4 rounded-xl bg-[#00a859]/15 hover:bg-[#00a859]/25 border border-[#00a859]/40 text-[#00a859] text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            اختيار صورة شخصية من الهاتف
+          </label>
+          <input type="file" id="photo-upload-input" accept="image/*" class="hidden" />
+        </div>
+
+        <!-- تخصيص بيانات البطاقة -->
+        <div class="bg-[#141923] border border-white/5 rounded-2xl p-4 space-y-3 mb-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-white">تعديل بيانات البطاقة</span>
+            <button type="button" onclick="resetDefaultData()" class="text-[11px] text-gray-400 hover:text-white underline">إعادة الافتراضي</button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">اللقب (عربي)</label>
+              <input type="text" id="input-lastname" value="إيجات" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">الإسم (عربي)</label>
+              <input type="text" id="input-firstname" value="وائل" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5" dir="ltr">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1 text-right">Nom (اللقب فرنسي)</label>
+              <input type="text" id="input-latin-last" value="IDJET" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1 text-right">Prénom (الإسم فرنسي)</label>
+              <input type="text" id="input-latin-first" value="Ouail" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-gray-400 mb-1">الجامعة</label>
+            <input type="text" id="input-university" value="جامعة قسنطينة 1" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">الميدان</label>
+              <input type="text" id="input-field" value="لغة فرنسية" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">الفرع</label>
+              <input type="text" id="input-branch" value="لغة فرنسية" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">تاريخ الميلاد</label>
+              <input type="text" id="input-dob" value="2004-07-31" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">مكان الميلاد</label>
+              <input type="text" id="input-pob" value="قسنطينة" class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00a859]" />
+            </div>
+          </div>
+
+          <button type="button" onclick="applyCardUpdates()" class="w-full py-2.5 rounded-xl bg-[#00a859] hover:bg-[#059669] text-white text-xs font-bold shadow-md transition">
+            حفظ وعرض البطاقة
+          </button>
+        </div>
+
+        <button type="button" onclick="showToast('تم تحديث الجلسة بنجاح')" class="w-full py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+          تسجيل الخروج
+        </button>
+      </section>
+
+    </main>
+
+    <!-- إشعار منبثق أنيق (Toast) بدلاً من alert -->
+    <div id="toast-msg" class="fixed top-12 left-1/2 -translate-x-1/2 bg-[#1e293b] text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl border border-white/10 opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap">
     </div>
-    <div class="face back">
-      <div style="font-weight:bold" id="uni2"></div>
-      <div style="font-size:11px;margin-top:6px;opacity:.7">تصميم شخصي · غير رسمي</div>
-      <div class="sheen"><i></i></div>
-    </div>
+
+    <!-- شريط التنقل السفلي المطابق للصورة تماماً (يمين: الرئيسية | وسط: بطاقاتي | يسار: حسابي) -->
+    <nav class="bottom-nav" aria-label="التنقل الرئيسي">
+      <button type="button" class="nav-btn" data-tab="home" onclick="switchTab('home')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" />
+        </svg>
+        <span>الرئيسية</span>
+      </button>
+
+      <button type="button" class="nav-btn active" data-tab="cards" onclick="switchTab('cards')">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+        </svg>
+        <span>بطاقاتي</span>
+      </button>
+
+      <button type="button" class="nav-btn" data-tab="account" onclick="switchTab('account')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <span>حسابي</span>
+      </button>
+    </nav>
   </div>
-</div>
-<div class="hint">اسحب لتدويرها · اضغط لقلبها</div>
-<script>
-/* عدّل بياناتك هنا فقط */
-var DATA={
-  uni:"جامعة قسنطينة 1",
-  photo:"IMG_6713.jpeg",
-  num:"222234300315",
-  year:"السنة الجامعية 2026 / 2027",
-  fields:[
-    ["اللقب","IDJET","إيجات"],
-    ["الاسم","OUAIL","وائل"],
-    ["تاريخ ومكان الميلاد","2004/07/31","قسنطينة"],
-    ["الميدان","","آداب ولغات"],
-    ["الفرع","","لغة فرنسية"],
-    ["المستوى","","ليسانس سنة ثالثة"]
-  ]
-};
-function $(i){return document.getElementById(i)}
-$("uni").textContent=DATA.uni;$("uni2").textContent=DATA.uni;
-$("photo").src=DATA.photo;$("num").textContent=DATA.num;$("year").textContent=DATA.year;
-DATA.fields.forEach(function(r){
-  var f=document.createElement("div");f.className="f";
-  var s=document.createElement("small");s.textContent=r[0];
-  var v=document.createElement("div");v.className="v";
-  var a=document.createElement("span");a.textContent=r[1];
-  var b=document.createElement("i");b.textContent=r[2];
-  v.appendChild(a);v.appendChild(b);f.appendChild(s);f.appendChild(v);$("info").appendChild(f);
-});
-new QRCode($("qr"),{text:location.origin+location.pathname,width:200,height:200});
-var scene=$("scene"),card=$("card"),shadow=$("shadow");
-var rx=0,ry=0,trx=0,tryy=0,flip=0,tflip=0,drag=false,moved=false,sx0=0,sy0=0;
-function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-scene.addEventListener("pointerdown",function(e){drag=true;moved=false;sx0=e.clientX;sy0=e.clientY;try{scene.setPointerCapture(e.pointerId)}catch(x){}});
-scene.addEventListener("pointermove",function(e){
-  if(!drag)return;
-  var dx=e.clientX-sx0,dy=e.clientY-sy0;
-  if(Math.hypot(dx,dy)>6)moved=true;
-  tryy=clamp(dx*.3,-40,40);trx=clamp(-dy*.3,-30,30);
-});
-scene.addEventListener("pointerup",function(){if(!drag)return;drag=false;if(!moved)tflip=tflip?0:180});
-scene.addEventListener("pointercancel",function(){drag=false});
-function loop(t){
-  if(!drag){tryy=Math.sin(t/1800)*10;trx=Math.cos(t/2300)*4}
-  ry+=(tryy-ry)*.1;rx+=(trx-rx)*.1;flip+=(tflip-flip)*.12;
-  card.style.transform="rotateX("+rx+"deg) rotateY("+(ry+flip)+"deg)";
-  card.style.setProperty("--sx",50+ry*4);
-  shadow.style.transform="translateX("+(-ry*1.5)+"px) scale("+(1-Math.abs(rx)/150)+")";
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-</script>
+
+  <script>
+    // توليد صورة بورتريه افتراضية مطابقة للصورة الجديدة (شعر بني مسرح لليمين، شارب خفيف، وقميص أسود على خلفية بيضاء)
+    const DEFAULT_PORTRAIT_SVG = `data:image/svg+xml;utf8,` + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240">
+        <defs>
+          <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e5b89b"/>
+            <stop offset="100%" stop-color="#d29f80"/>
+          </linearGradient>
+          <linearGradient id="hairGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#6b513e"/>
+            <stop offset="55%" stop-color="#4e3829"/>
+            <stop offset="100%" stop-color="#36261b"/>
+          </linearGradient>
+        </defs>
+        <!-- خلفية بيضاء -->
+        <rect width="200" height="240" fill="#ffffff"/>
+        <!-- قميص أسود -->
+        <path d="M12 240 C16 196, 56 184, 100 184 C144 184, 184 196, 188 240 Z" fill="#18181b"/>
+        <path d="M72 184 Q100 214 128 184 L120 182 Q100 204 80 182 Z" fill="#27272a"/>
+        <!-- الرقبة -->
+        <path d="M78 144 L78 188 Q100 206 122 188 L122 144 Z" fill="url(#skin)"/>
+        <path d="M80 148 Q100 162 120 148 L120 158 Q100 170 80 158 Z" fill="#ba8668" opacity="0.45"/>
+        <!-- الأذنان -->
+        <ellipse cx="55" cy="108" rx="6.5" ry="15" fill="#d7a486"/>
+        <ellipse cx="145" cy="108" rx="6.5" ry="15" fill="#d7a486"/>
+        <!-- الوجه -->
+        <path d="M58 84 C58 46, 142 46, 142 84 C142 126, 128 158, 100 160 C72 158, 58 126, 58 84 Z" fill="url(#skin)"/>
+        <!-- الشعر البني المسرح بفرق جانبي لليمين -->
+        <path d="M56 96 C54 68, 56 44, 72 32 C88 20, 118 22, 134 36 C146 47, 145 72, 144 96 C141 78, 138 64, 134 58 C122 50, 82 52, 66 64 C60 70, 58 82, 56 96 Z" fill="url(#hairGrad)"/>
+        <path d="M68 38 Q102 28 132 44" stroke="#856852" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+        <path d="M132 45 L136 58" stroke="#c89678" stroke-width="1.5" opacity="0.7"/>
+        <!-- الحاجبان -->
+        <path d="M68 86 Q82 81 94 86" stroke="#3f2d21" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+        <path d="M106 86 Q118 81 132 86" stroke="#3f2d21" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+        <!-- العينان -->
+        <ellipse cx="82" cy="96" rx="8" ry="4.5" fill="#ffffff"/>
+        <circle cx="82" cy="96" r="3.6" fill="#2c1e16"/>
+        <circle cx="81" cy="95" r="1" fill="#ffffff"/>
+        <path d="M73 95 Q82 90 91 95" stroke="#2c1e16" stroke-width="1.6" fill="none"/>
+        <ellipse cx="118" cy="96" rx="8" ry="4.5" fill="#ffffff"/>
+        <circle cx="118" cy="96" r="3.6" fill="#2c1e16"/>
+        <circle cx="117" cy="95" r="1" fill="#ffffff"/>
+        <path d="M109 95 Q118 90 127 95" stroke="#2c1e16" stroke-width="1.6" fill="none"/>
+        <!-- الأنف -->
+        <path d="M100 94 L97 115 Q100 118 105 115" stroke="#b37f62" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- الشارب الخفيف -->
+        <path d="M84 127 Q93 122 100 125 Q107 122 116 127 Q108 128 100 126.5 Q92 128 84 127 Z" fill="#4e3829" opacity="0.82"/>
+        <!-- الفم والذقن -->
+        <path d="M88 132 Q100 135 112 132" stroke="#9c5d50" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M92 136 Q100 140 108 136" stroke="#b8786a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M94 149 Q100 151 106 149" stroke="#ba8668" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.6"/>
+      </svg>
+    `);
+
+    // تهيئة الصور الافتراضية
+    const cardPhotoImg = document.getElementById('student-photo-img');
+    const accountAvatarImg = document.getElementById('account-avatar');
+    cardPhotoImg.src = DEFAULT_PORTRAIT_SVG;
+    accountAvatarImg.src = DEFAULT_PORTRAIT_SVG;
+
+    // 1. التبديل بين التبويبات الثلاثة (الرئيسية - بطاقاتي - حسابي)
+    function switchTab(tabName) {
+      document.querySelectorAll('.view-screen').forEach(screen => {
+        screen.classList.remove('active');
+      });
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      const targetScreen = document.getElementById(`view-${tabName}`);
+      const targetBtn = document.querySelector(`.nav-btn[data-tab="${tabName}"]`);
+
+      if (targetScreen) targetScreen.classList.add('active');
+      if (targetBtn) targetBtn.classList.add('active');
+    }
+
+    // 2. قلب البطاقة ثلاثي الأبعاد عند النقر أو اللمس (كما في الفيديو)
+    const cardScene = document.getElementById('card-scene');
+    const cardFlipper = document.getElementById('card-flipper');
+    let isFlipped = false;
+
+    cardScene.addEventListener('click', () => {
+      isFlipped = !isFlipped;
+      cardFlipper.classList.toggle('is-flipped', isFlipped);
+    });
+
+    // 3. رسم رمز الاستجابة السريعة QR Code بدقة وواقعية على Canvas
+    function drawRealisticQR(seedText) {
+      const canvas = document.getElementById('qr-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const cells = 21;
+      const cellSize = size / cells;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#111827';
+
+      // دالة توليد نمط ثابت بناءً على النص
+      let hash = 0;
+      for (let i = 0; i < seedText.length; i++) {
+        hash = ((hash << 5) - hash) + seedText.charCodeAt(i);
+        hash |= 0;
+      }
+
+      const isFinder = (r, c) => {
+        return (r < 7 && c < 7) || (r < 7 && c >= cells - 7) || (r >= cells - 7 && c < 7);
+      };
+
+      for (let r = 0; r < cells; r++) {
+        for (let c = 0; c < cells; c++) {
+          if (isFinder(r, c)) continue;
+          const val = Math.abs(Math.sin(r * 13.7 + c * 7.3 + hash) * 10000);
+          if (Math.floor(val) % 2 === 0) {
+            ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+
+      // رسم مربعات الزوايا الثلاثة القياسية في QR
+      const drawFinderBox = (startR, startC) => {
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(startC * cellSize, startR * cellSize, 7 * cellSize, 7 * cellSize);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect((startC + 1) * cellSize, (startR + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+        ctx.fillStyle = '#111827';
+        ctx.fillRect((startC + 2) * cellSize, (startR + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+      };
+
+      drawFinderBox(0, 0);
+      drawFinderBox(0, cells - 7);
+      drawFinderBox(cells - 7, 0);
+    }
+
+    drawRealisticQR('UN25012026222234300315');
+
+    // 4. رفع صورة الطالب الشخصية من الهاتف وعرضها فوراً في البطاقة
+    document.getElementById('photo-upload-input').addEventListener('change', function (e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const dataUrl = event.target.result;
+        cardPhotoImg.src = dataUrl;
+        accountAvatarImg.src = dataUrl;
+        showToast('تم تحديث صورة البطاقة بنجاح');
+        switchTab('cards');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // 5. تحديث بيانات البطاقة من تبويب حسابي
+    function applyCardUpdates() {
+      const lastName = document.getElementById('input-lastname').value.trim() || 'إيجات';
+      const firstName = document.getElementById('input-firstname').value.trim() || 'وائل';
+      const latinLast = document.getElementById('input-latin-last').value.trim() || 'IDJET';
+      const latinFirst = document.getElementById('input-latin-first').value.trim() || 'Ouail';
+      const univ = document.getElementById('input-university').value.trim() || 'جامعة قسنطينة 1';
+      const field = document.getElementById('input-field').value.trim() || 'لغة فرنسية';
+      const branch = document.getElementById('input-branch').value.trim() || 'لغة فرنسية';
+      const dob = document.getElementById('input-dob').value.trim() || '2004-07-31';
+      const pob = document.getElementById('input-pob').value.trim() || 'قسنطينة';
+
+      document.getElementById('card-lastname').textContent = lastName;
+      document.getElementById('card-firstname').textContent = firstName;
+      document.getElementById('card-latin-last').textContent = latinLast.toUpperCase();
+      document.getElementById('card-latin-first').textContent = latinFirst;
+      document.getElementById('card-university').textContent = univ;
+      document.getElementById('card-field').textContent = field;
+      document.getElementById('card-branch').textContent = branch;
+      document.getElementById('card-dob').textContent = dob;
+      document.getElementById('card-pob').textContent = pob;
+
+      // تحديث الواجهات الأخرى
+      document.getElementById('home-student-greeting').textContent = `${lastName} ${firstName}`;
+      document.getElementById('home-univ').textContent = univ;
+      document.getElementById('home-field').textContent = `ميدان: ${field}`;
+      document.getElementById('acc-fullname').textContent = `${lastName} ${firstName}`;
+      document.getElementById('acc-field').textContent = `${field} • ليسانس سنة ثانية`;
+
+      showToast('تم حفظ التعديلات على البطاقة');
+      switchTab('cards');
+    }
+
+    function resetDefaultData() {
+      document.getElementById('input-lastname').value = 'إيجات';
+      document.getElementById('input-firstname').value = 'وائل';
+      document.getElementById('input-latin-last').value = 'IDJET';
+      document.getElementById('input-latin-first').value = 'Ouail';
+      document.getElementById('input-university').value = 'جامعة قسنطينة 1';
+      document.getElementById('input-field').value = 'لغة فرنسية';
+      document.getElementById('input-branch').value = 'لغة فرنسية';
+      document.getElementById('input-dob').value = '2004-07-31';
+      document.getElementById('input-pob').value = 'قسنطينة';
+      cardPhotoImg.src = DEFAULT_PORTRAIT_SVG;
+      accountAvatarImg.src = DEFAULT_PORTRAIT_SVG;
+      applyCardUpdates();
+    }
+
+    // 6. إشعار Toast بديل عن alert
+    let toastTimer;
+    function showToast(message) {
+      const toast = document.getElementById('toast-msg');
+      toast.textContent = message;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2400);
+    }
+  </script>
 </body>
 </html>
